@@ -14,6 +14,7 @@ from sklearn.svm import SVR
 from sklearn.metrics import mean_squared_error
 from sklearn.compose import make_column_selector
 from sklearn.linear_model import LinearRegression
+from math import sqrt
 
 # 加载Ames房价数据集
 housing = fetch_openml(name="house_prices", as_frame=True)
@@ -57,7 +58,7 @@ print(correlation_matrix)
 # 计算特征之间的共线性
 vif = pd.DataFrame()
 vif["Features"] = feature_columns
-vif["VIF"] = [sm.OLS(df[feature], sm.add_constant(df[feature_columns].drop(columns=feature))).fit().rsquared for feature in feature_columns]
+vif["VIF"] = [1 / (1 - sm.OLS(df[feature], sm.add_constant(df[feature_columns].drop(columns=feature))).fit().rsquared) for feature in feature_columns]
 
 # 打印特征之间的共线性
 print("\nVariance Inflation Factor (VIF):")
@@ -100,9 +101,11 @@ rf_model.fit(X_train_preprocessed, y_train)
 # 使用训练好的模型进行预测
 y_pred_rf = rf_model.predict(X_test_preprocessed)
 
-# 评估模型性能
+# 计算随机森林的MSE
 mse_rf = mean_squared_error(y_test, y_pred_rf)
-print("Random Forest Mean Squared Error:", mse_rf)
+# 计算RMSE
+rmse_rf = sqrt(mse_rf)
+print("Random Forest RMSE:", rmse_rf)
 
 # 创建支持向量机回归模型对象
 svm_model = SVR()
@@ -113,9 +116,11 @@ svm_model.fit(X_train_preprocessed, y_train)
 # 使用训练好的模型进行预测
 y_pred_svm = svm_model.predict(X_test_preprocessed)
 
-# 评估模型性能
+# 计算支持向量机的MSE
 mse_svm = mean_squared_error(y_test, y_pred_svm)
-print("Support Vector Machine Mean Squared Error:", mse_svm)
+# 计算RMSE
+rmse_svm = sqrt(mse_svm)
+print("Support Vector Machine RMSE:", rmse_svm)
 
 
 # 创建线性回归模型对象
@@ -127,9 +132,9 @@ linear_model.fit(X_train_preprocessed, y_train)
 # 使用训练好的模型进行预测
 y_pred_linear = linear_model.predict(X_test_preprocessed)
 
-# 评估模型性能
 mse_linear = mean_squared_error(y_test, y_pred_linear)
-print("Linear Regression Mean Squared Error:", mse_linear)
+rmse_linear = sqrt(mse_linear)
+print("Linear Regression RMSE:", rmse_linear)
 
 # 绘制预测结果
 plt.figure(figsize=(12, 6))
